@@ -296,4 +296,41 @@ public sealed class CityQueryServiceTests : IAsyncLifetime
         var item = Assert.Single(page.Items);
         Assert.Equal(registeredUserId, item.CreatedBy);
     }
+
+    [Fact]
+    public async Task GetCitiesAsync_UnknownStateAbbreviation_FallsBackToRawAbbreviation()
+    {
+        // Arrange
+        await SeedAsync(City("CTY-ZZ1", "Nowhere", "ZZ", "USR-SEED0001"));
+
+        await using var context = _fixture.CreateContext();
+        var service = new CityQueryService(context);
+
+        // Act
+        var page = await service.GetCitiesAsync(null, null, 1, 25);
+
+        // Assert
+        var item = Assert.Single(page.Items);
+        Assert.Equal("ZZ", item.StateName);
+    }
+
+    [Theory]
+    [InlineData(0, 25)]
+    [InlineData(-1, 25)]
+    [InlineData(1, 0)]
+    [InlineData(1, -5)]
+    public async Task GetCitiesAsync_PageNumberOrSizeBelowOne_ThrowsArgumentOutOfRange(
+        int pageNumber,
+        int pageSize
+    )
+    {
+        // Arrange
+        await using var context = _fixture.CreateContext();
+        var service = new CityQueryService(context);
+
+        // Act / Assert
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+            () => service.GetCitiesAsync(null, null, pageNumber, pageSize)
+        );
+    }
 }

@@ -25,8 +25,11 @@ public interface ICityQueryService
     /// Optional two-letter state abbreviation to filter by; when null or empty, cities in
     /// all states are returned.
     /// </param>
-    /// <param name="pageNumber">The 1-based page number to return.</param>
-    /// <param name="pageSize">The maximum number of cities to return for the page.</param>
+    /// <param name="pageNumber">The 1-based page number to return; must be 1 or greater.</param>
+    /// <param name="pageSize">The maximum number of cities to return for the page; must be 1 or greater.</param>
+    /// <exception cref="ArgumentOutOfRangeException">
+    /// Thrown when <paramref name="pageNumber"/> or <paramref name="pageSize"/> is less than 1.
+    /// </exception>
     Task<CityPage> GetCitiesAsync(
         string? searchTerm,
         string? stateAbbreviation,

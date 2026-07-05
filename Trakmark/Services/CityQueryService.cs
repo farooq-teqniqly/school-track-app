@@ -28,6 +28,9 @@ public sealed class CityQueryService : ICityQueryService
         int pageSize
     )
     {
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageNumber, 1);
+        ArgumentOutOfRangeException.ThrowIfLessThan(pageSize, 1);
+
         var query = _context.Cities.AsQueryable();
 
         if (!string.IsNullOrEmpty(searchTerm))

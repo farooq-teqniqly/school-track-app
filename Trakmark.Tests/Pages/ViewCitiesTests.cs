@@ -3,6 +3,7 @@ using Bunit.TestDoubles;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.JSInterop;
 using NSubstitute;
 using Trakmark.Components.Pages;
 using Trakmark.Services;
@@ -74,6 +75,24 @@ public sealed class ViewCitiesTests : BunitContext
         // Assert
         var time = cut.Find(".city-row time");
         Assert.Equal(createdAt.ToString("O"), time.GetAttribute("data-utc"));
+    }
+
+    [Fact]
+    public void ViewCities_JsInteropDisconnected_RendersWithoutThrowing()
+    {
+        // Arrange
+        SetupPage(
+            PageOf(1, new CityListItem("Chicago", "IL", "Illinois", DateTimeOffset.UtcNow, "a@test.com"))
+        );
+        JSInterop.SetupVoid("trakmark.formatLocalTimes")
+            .SetException(new JSDisconnectedException("circuit gone"));
+
+        // Act
+        var cut = Render<ViewCities>();
+
+        // Assert
+        Assert.Single(cut.FindAll(".city-row"));
+        Assert.Empty(cut.FindAll("#error-alert"));
     }
 
     [Fact]
