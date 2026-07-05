@@ -43,4 +43,19 @@ public sealed class TopNavMenuTests : BunitContext
         // Assert
         Assert.Equal(expectedCount, cut.FindAll("a[href='admin/cities/add']").Count);
     }
+
+    [Theory]
+    [MemberData(nameof(AddCitiesLinkVisibilityData))]
+    public void ViewCitiesLink_AuthScenario_ControlsVisibility(string scenario, int expectedCount)
+    {
+        // Arrange
+        var auth = AddAuthorization();
+        SetupAuth(auth, scenario);
+
+        // Act
+        var cut = Render<TopNavMenu>();
+
+        // Assert
+        Assert.Equal(expectedCount, cut.FindAll("a[href='admin/cities']").Count);
+    }
 }
