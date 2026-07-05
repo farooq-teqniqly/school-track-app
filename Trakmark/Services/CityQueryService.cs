@@ -35,10 +35,11 @@ public sealed class CityQueryService : ICityQueryService
 
         if (!string.IsNullOrEmpty(searchTerm))
         {
-            // EF Core cannot translate ToUpperInvariant() to SQL, so ToUpper() is used
-            // here (matching SaveCitiesBatchService). SQL UPPER() is equivalent for the
-            // ASCII-only U.S. city names this catalog contains.
-            var upperSearch = searchTerm.ToUpper();
+            // The input is normalized C#-side with ToUpperInvariant() to stay culture-safe
+            // (e.g. Turkish 'i'). The column side uses ToUpper(), which EF Core translates to
+            // SQL UPPER() (executed by the server, not .NET culture); ToUpperInvariant() has
+            // no EF translation, so it cannot be used on the column.
+            var upperSearch = searchTerm.ToUpperInvariant();
 #pragma warning disable CA1862
             query = query.Where(c => c.Name.ToUpper().Contains(upperSearch));
 #pragma warning restore CA1862
@@ -46,7 +47,7 @@ public sealed class CityQueryService : ICityQueryService
 
         if (!string.IsNullOrEmpty(stateAbbreviation))
         {
-            var upperState = stateAbbreviation.ToUpper();
+            var upperState = stateAbbreviation.ToUpperInvariant();
 #pragma warning disable CA1862
             query = query.Where(c => c.State.ToUpper() == upperState);
 #pragma warning restore CA1862

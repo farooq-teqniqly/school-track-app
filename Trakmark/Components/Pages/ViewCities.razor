@@ -125,6 +125,11 @@ else if (_page is not null)
     /// <inheritdoc/>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_page is null || _page.Items.Count == 0)
+        {
+            return;
+        }
+
         try
         {
             await JS.InvokeVoidAsync("trakmark.formatLocalTimes");
