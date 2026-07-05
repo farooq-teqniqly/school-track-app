@@ -38,7 +38,7 @@ jobs:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
             SONAR_PROJECT_KEY: farooq-teqniqly_trakmark
             SONAR_ORGANIZATION: farooq-teqniqly
-            SONAR_EXCLUSIONS: "**/*.Tests/**,**/*.Benchmarks/**,**/samples/**,**/*.py"
+            SONAR_EXCLUSIONS: "**/*.Tests/**,**/*.Benchmarks/**,**/samples/**,**/*.py,**/*.sql,**/*.js,**/Program.cs"
 
         steps:
             - name: Checkout code
