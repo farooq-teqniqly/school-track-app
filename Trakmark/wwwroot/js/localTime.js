@@ -1,10 +1,15 @@
-window.trakmark = window.trakmark || {};
+globalThis.trakmark = globalThis.trakmark || {};
 
-window.trakmark.formatLocalTimes = function () {
-    document.querySelectorAll("time[data-utc]").forEach(function (el) {
-        var parsed = new Date(el.getAttribute("data-utc"));
-        if (!isNaN(parsed.getTime())) {
-            el.textContent = parsed.toLocaleString();
+globalThis.trakmark.formatLocalTimes = function () {
+    document.querySelectorAll("time[data-utc]").forEach((el) => {
+        const parsed = new Date(el.dataset.utc);
+        if (Number.isNaN(parsed.getTime())) {
+            return;
+        }
+
+        const local = parsed.toLocaleString();
+        if (el.textContent !== local) {
+            el.textContent = local;
         }
     });
 };

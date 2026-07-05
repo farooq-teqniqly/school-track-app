@@ -91,6 +91,27 @@ public sealed class ViewCitiesTests : BunitContext
     }
 
     [Fact]
+    public void ViewCities_QueryServiceThrows_ShowsErrorAndNoRows()
+    {
+        // Arrange
+        _mockQueryService
+            .GetCitiesAsync(
+                Arg.Any<string?>(),
+                Arg.Any<string?>(),
+                Arg.Any<int>(),
+                Arg.Any<int>()
+            )
+            .Returns<Task<CityPage>>(_ => throw new InvalidOperationException("boom"));
+
+        // Act
+        var cut = Render<ViewCities>();
+
+        // Assert
+        Assert.NotEmpty(cut.FindAll("#error-alert"));
+        Assert.Empty(cut.FindAll(".city-row"));
+    }
+
+    [Fact]
     public async Task ViewCities_SearchTermEntered_CallsServiceWithTermAndResetsToPageOne()
     {
         // Arrange

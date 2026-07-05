@@ -13,7 +13,7 @@ DECLARE @Count int = 200;   -- number of test cities to insert
 -- Attribute the rows to an existing registered user so "Created by"
 -- resolves to an email; falls back to a literal if none exist.
 DECLARE @CreatedBy nvarchar(20) =
-    (SELECT TOP (1) RegisteredUserId FROM RegisteredUsers ORDER BY Id);
+    (SELECT TOP (1) RegisteredUserId FROM RegisteredUsers ORDER BY Id ASC);
 IF @CreatedBy IS NULL SET @CreatedBy = N'USR-SEED01';
 
 ;WITH Numbers AS
@@ -24,12 +24,12 @@ IF @CreatedBy IS NULL SET @CreatedBy = N'USR-SEED01';
 ),
 States AS
 (
-    SELECT Abbr, ROW_NUMBER() OVER (ORDER BY Abbr) AS rn
+    SELECT Abbr, ROW_NUMBER() OVER (ORDER BY Abbr ASC) AS rn
     FROM (VALUES
         ('CA'),('TX'),('NY'),('FL'),('IL'),
         ('PA'),('OH'),('GA'),('NC'),('MI'),
         ('WA'),('CO'),('AZ'),('MA'),('TN')
-    ) v(Abbr)
+    ) AS v(Abbr)
 ),
 StateCount AS (SELECT COUNT(*) AS c FROM States)
 INSERT INTO Cities (CityId, Name, State, CreatedAt, CreatedByUserId)

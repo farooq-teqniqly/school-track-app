@@ -36,13 +36,17 @@ public sealed class CityQueryService : ICityQueryService
             // here (matching SaveCitiesBatchService). SQL UPPER() is equivalent for the
             // ASCII-only U.S. city names this catalog contains.
             var upperSearch = searchTerm.ToUpper();
+#pragma warning disable CA1862
             query = query.Where(c => c.Name.ToUpper().Contains(upperSearch));
+#pragma warning restore CA1862
         }
 
         if (!string.IsNullOrEmpty(stateAbbreviation))
         {
             var upperState = stateAbbreviation.ToUpper();
+#pragma warning disable CA1862
             query = query.Where(c => c.State.ToUpper() == upperState);
+#pragma warning restore CA1862
         }
 
         var totalCount = await query.CountAsync();

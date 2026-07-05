@@ -125,7 +125,14 @@ else if (_page is not null)
     /// <inheritdoc/>
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        await JS.InvokeVoidAsync("trakmark.formatLocalTimes");
+        try
+        {
+            await JS.InvokeVoidAsync("trakmark.formatLocalTimes");
+        }
+        catch (JSDisconnectedException ex)
+        {
+            Logger.LogLocalTimeFormatSkipped(ex);
+        }
     }
 
     private async Task LoadAsync()

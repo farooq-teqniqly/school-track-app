@@ -109,7 +109,8 @@ public sealed class CityQueryServiceTests : IAsyncLifetime
 
         // Assert
         var names = page.Items.Select(i => i.Name).OrderBy(n => n).ToList();
-        Assert.Equal(new[] { "Springdale", "Springfield" }, names);
+        string[] expectedNames = ["Springdale", "Springfield"];
+        Assert.Equal(expectedNames, names);
         Assert.Equal(2, page.TotalCount);
     }
 
@@ -152,6 +153,26 @@ public sealed class CityQueryServiceTests : IAsyncLifetime
     }
 
     [Fact]
+    public async Task GetCitiesAsync_LowercaseStateFilter_MatchesCaseInsensitively()
+    {
+        // Arrange
+        await SeedAsync(
+            City("CTY-DL1", "Springfield", "IL", "USR-SEED0001"),
+            City("CTY-DL2", "Austin", "TX", "USR-SEED0001")
+        );
+
+        await using var context = _fixture.CreateContext();
+        var service = new CityQueryService(context);
+
+        // Act
+        var page = await service.GetCitiesAsync(null, "il", 1, 25);
+
+        // Assert
+        Assert.All(page.Items, i => Assert.Equal("IL", i.StateAbbreviation));
+        Assert.Equal(1, page.TotalCount);
+    }
+
+    [Fact]
     public async Task GetCitiesAsync_ClearedStateFilter_ReturnsAllStates()
     {
         // Arrange
@@ -168,7 +189,8 @@ public sealed class CityQueryServiceTests : IAsyncLifetime
 
         // Assert
         var states = page.Items.Select(i => i.StateAbbreviation).Distinct().OrderBy(s => s).ToList();
-        Assert.Equal(new[] { "IL", "TX" }, states);
+        string[] expectedStates = ["IL", "TX"];
+        Assert.Equal(expectedStates, states);
     }
 
     [Fact]
