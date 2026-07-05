@@ -30,7 +30,7 @@ docker compose up -d
 podman compose up -d
 ```
 
-This runs SQL Server 2025 on `localhost,1433` with a persistent volume (`sqlserver_data`).
+This runs SQL Server 2025 on `127.0.0.1,1433` with a persistent volume (`sqlserver_data`).
 
 ---
 
@@ -39,7 +39,7 @@ This runs SQL Server 2025 on `localhost,1433` with a persistent volume (`sqlserv
 All secrets go in user secrets — never in `appsettings.json`.
 
 ```powershell
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost,1433;Database=Trakmark;User Id=sa;Password=<your-password>;TrustServerCertificate=True;" --project Trakmark
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=127.0.0.1,1433;Database=Trakmark;User Id=sa;Password=<your-password>;TrustServerCertificate=True;" --project Trakmark
 dotnet user-secrets set "Authentication:Google:ClientId" "<your-client-id>" --project Trakmark
 dotnet user-secrets set "Authentication:Google:ClientSecret" "<your-client-secret>" --project Trakmark
 ```
@@ -58,10 +58,10 @@ dotnet user-secrets set "Authentication:Google:ClientSecret" "<your-client-secre
 
 ### 4. Database Migration
 
-Install the `dotnet-ef` global tool if not already present:
+Restore the local `dotnet-ef` tool from the manifest:
 
 ```powershell
-dotnet tool install --global dotnet-ef
+dotnet tool restore
 ```
 
 Set the design-time connection string environment variable, then run migrations:
@@ -104,7 +104,7 @@ IF NOT EXISTS (SELECT 1 FROM AspNetUserRoles WHERE UserId = @UserId AND RoleId =
     UPDATE AspNetUserRoles SET RoleId = @RoleId WHERE UserId = @UserId;
 ```
 
-Run this against the `Trakmark` database on `localhost,1433` using any SQL client (SSMS, Azure Data Studio, etc.).
+Run this against the `Trakmark` database on `127.0.0.1,1433` using any SQL client (SSMS, Azure Data Studio, etc.).
 
 ---
 
