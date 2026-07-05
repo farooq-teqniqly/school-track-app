@@ -76,7 +76,8 @@ jobs:
                     /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
                     /d:sonar.security.enableProjectScan=true \
                     /d:sonar.qualitygate.wait=true \
-                    /d:sonar.coverage.exclusions="${{env.SONAR_EXCLUSIONS}}"
+                    /d:sonar.coverage.exclusions="${{env.SONAR_EXCLUSIONS}}" \
+                    /d:sonar.exclusions="**/*.sql"
 
             - name: Build solution
               run: dotnet build Trakmark/Trakmark.slnx --configuration Release --no-restore
