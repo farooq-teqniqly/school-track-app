@@ -77,7 +77,8 @@ jobs:
                     /d:sonar.security.enableProjectScan=true \
                     /d:sonar.qualitygate.wait=true \
                     /d:sonar.coverage.exclusions="${{env.SONAR_EXCLUSIONS}}" \
-                    /d:sonar.exclusions="**/*.sql"
+                    /d:sonar.tsql.file.suffixes=".sql,.tsql" \
+                    /d:sonar.plsql.file.suffixes=".plsql"
 
             - name: Build solution
               run: dotnet build Trakmark/Trakmark.slnx --configuration Release --no-restore
