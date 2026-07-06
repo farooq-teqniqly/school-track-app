@@ -1,0 +1,194 @@
+@page "/admin/cities"
+@attribute [Microsoft.AspNetCore.Authorization.Authorize(Roles = "Admin")]
+@rendermode InteractiveServer
+
+@using Microsoft.Extensions.Logging
+@using Microsoft.JSInterop
+@using Trakmark.Helpers
+@using Trakmark.Services
+
+@inject ICityQueryService QueryService
+@inject IJSRuntime JS
+@inject ILogger<ViewCities> Logger
+
+<PageTitle>View Cities</PageTitle>
+
+<h1 class="mb-4">View Cities</h1>
+
+@if (_errorMessage is not null)
+{
+    <div id="error-alert" class="alert alert-danger" role="alert">
+        @_errorMessage
+    </div>
+}
+
+<div class="row g-2 mb-3">
+    <div class="col-md-6">
+        <input id="city-search"
+               type="text"
+               class="form-control"
+               placeholder="Search by name"
+               maxlength="100"
+               value="@_searchTerm"
+               @onchange="@(e => OnSearchChangedAsync(e.Value?.ToString() ?? string.Empty))" />
+    </div>
+    <div class="col-md-4">
+        <select id="state-filter"
+                class="form-select"
+                value="@_stateFilter"
+                @onchange="@(e => OnStateChangedAsync(e.Value?.ToString() ?? string.Empty))">
+            <option value="">All states</option>
+            @foreach (var state in StateHelper.AllStates)
+            {
+                <option value="@state.Abbreviation">@state.Name (@state.Abbreviation)</option>
+            }
+        </select>
+    </div>
+</div>
+
+@if (_page is not null && _page.Items.Count == 0)
+{
+    <div id="empty-message" class="alert alert-info" role="alert">
+        No cities match the current filter.
+    </div>
+}
+else if (_page is not null)
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>State</th>
+                <th>Created by</th>
+                <th>Created at (local time)</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var city in _page.Items)
+            {
+                <tr class="city-row">
+                    <td>@city.Name</td>
+                    <td>@city.StateName (@city.StateAbbreviation)</td>
+                    <td>@city.CreatedBy</td>
+                    <td>
+                        <time datetime="@city.CreatedAt.ToString("O")" data-utc="@city.CreatedAt.ToString("O")">
+                            @city.CreatedAt.UtcDateTime.ToString("g") UTC
+                        </time>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div class="d-flex align-items-center gap-2 mb-4">
+        <button id="prev-page-btn"
+                class="btn btn-outline-secondary"
+                @onclick="PreviousPageAsync"
+                disabled="@(_pageNumber <= 1)">
+            Previous
+        </button>
+        <span id="page-indicator">Page @_pageNumber of @TotalPages</span>
+        <button id="next-page-btn"
+                class="btn btn-outline-secondary"
+                @onclick="NextPageAsync"
+                disabled="@(_pageNumber >= TotalPages)">
+            Next
+        </button>
+    </div>
+}
+
+@code {
+    private const int PageSize = 25;
+
+    private string? _searchTerm;
+    private string? _stateFilter;
+    private int _pageNumber = 1;
+    private CityPage? _page;
+    private string? _errorMessage;
+
+    private int TotalPages =>
+        _page is null || _page.TotalCount == 0
+            ? 1
+            : (int)Math.Ceiling(_page.TotalCount / (double)PageSize);
+
+    /// <inheritdoc/>
+    protected override async Task OnInitializedAsync()
+    {
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        await LoadAsync();
+    }
+
+    /// <inheritdoc/>
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (_page is null || _page.Items.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await JS.InvokeVoidAsync("trakmark.formatLocalTimes");
+        }
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException)
+        {
+            Logger.LogLocalTimeFormatSkipped(ex);
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            _errorMessage = null;
+            _page = await QueryService.GetCitiesAsync(
+                _searchTerm,
+                _stateFilter,
+                _pageNumber,
+                PageSize
+            );
+        }
+        catch (Exception ex)
+        {
+            Logger.LogCityQueryFailed(ex);
+            _page = null;
+            _errorMessage = "Failed to load cities. Please try again or contact support.";
+        }
+    }
+
+    private async Task OnSearchChangedAsync(string value)
+    {
+        _searchTerm = string.IsNullOrEmpty(value) ? null : value;
+        _pageNumber = 1;
+        await LoadAsync();
+    }
+
+    private async Task OnStateChangedAsync(string value)
+    {
+        _stateFilter = string.IsNullOrEmpty(value) ? null : value;
+        _pageNumber = 1;
+        await LoadAsync();
+    }
+
+    private async Task NextPageAsync()
+    {
+        if (_pageNumber < TotalPages)
+        {
+            _pageNumber++;
+            await LoadAsync();
+        }
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (_pageNumber > 1)
+        {
+            _pageNumber--;
+            await LoadAsync();
+        }
+    }
+}

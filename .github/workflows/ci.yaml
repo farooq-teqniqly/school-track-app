@@ -38,7 +38,7 @@ jobs:
             SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
             SONAR_PROJECT_KEY: farooq-teqniqly_trakmark
             SONAR_ORGANIZATION: farooq-teqniqly
-            SONAR_EXCLUSIONS: "**/*.Tests/**,**/*.Benchmarks/**,**/samples/**,**/*.py"
+            SONAR_EXCLUSIONS: "**/*.Tests/**,**/*.Benchmarks/**,**/samples/**,**/*.py,**/Scripts/*.sql,**/wwwroot/js/*.js,Trakmark/Program.cs"
 
         steps:
             - name: Checkout code
@@ -76,7 +76,9 @@ jobs:
                     /d:sonar.cs.vscoveragexml.reportsPaths=coverage.xml \
                     /d:sonar.security.enableProjectScan=true \
                     /d:sonar.qualitygate.wait=true \
-                    /d:sonar.coverage.exclusions="${{env.SONAR_EXCLUSIONS}}"
+                    /d:sonar.coverage.exclusions="${{env.SONAR_EXCLUSIONS}}" \
+                    /d:sonar.tsql.file.suffixes=".sql,.tsql" \
+                    /d:sonar.plsql.file.suffixes=".plsql"
 
             - name: Build solution
               run: dotnet build Trakmark/Trakmark.slnx --configuration Release --no-restore

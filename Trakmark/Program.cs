@@ -22,6 +22,7 @@ builder.Services.AddAppTelemetry(builder.Configuration);
 builder.Services.AddScoped<ISaveCitiesBatchService, SaveCitiesBatchService>();
 builder.Services.AddScoped<IRegisteredUserMappingService, RegisteredUserMappingService>();
 builder.Services.AddScoped<IRegisteredUserLookupService, RegisteredUserLookupService>();
+builder.Services.AddScoped<ICityQueryService, CityQueryService>();
 
 var app = builder.Build();
 
