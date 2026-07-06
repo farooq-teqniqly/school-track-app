@@ -126,3 +126,11 @@ dotnet build .\Trakmark\Trakmark.slnx 2>&1 |
 - If warnings remain after 3 rounds, **block the merge** and write the outstanding items to `docs/sonarqube-warnings-triage.md` (date-stamped entry, branch name, remaining warning list, reason each could not be resolved).
 
 `Trakmark.Domain` line coverage must be **100%** before merging **any change whose diff touches `Trakmark.Domain`**. Run the `coverage-report` skill (or its `Run-Coverage.ps1`) and add tests to close any gap — domain types have no untestable infrastructure dependencies, so an uncovered line means a missing test, not an exemption. Sections/changes that do not modify `Trakmark.Domain` (e.g. persistence, application-layer, or UI-only work) are exempt from this gate — confirm exemption by checking the diff, not by assumption.
+
+### External bot review rounds (Copilot / Qodo)
+
+Automated reviewers re-run on every push, so each fix commit re-triggers a new pass on the changed lines — left unchecked this produces an endless tail of ever-smaller nits. Cap it:
+
+- **Fix Major+ findings immediately**, each verified and tested, however many rounds it takes — real defects are never deferred.
+- **Once a round returns only Nit / won't-fix findings (no Major or above), it is the last round.** Fix the accepted nits in **one batched commit**, disposition the rest (reply + resolve as won't-fix with rationale), and **stop** — do not treat the bot re-review triggered by that batched commit as a new round to service.
+- Record each round's outcome in the PR review doc (`docs/pr-reviews/PR_REVIEW_<n>.md`) so the round count and stop decision are auditable.
