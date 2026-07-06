@@ -314,6 +314,42 @@ public sealed class CityQueryServiceTests : IAsyncLifetime
         Assert.Equal("ZZ", item.StateName);
     }
 
+    [Fact]
+    public async Task GetCitiesAsync_WhitespaceOnlySearchTerm_AppliesNoNameFilter()
+    {
+        // Arrange
+        await SeedAsync(
+            City("CTY-WS1", "Chicago", "IL", "USR-SEED0001"),
+            City("CTY-WS2", "Austin", "TX", "USR-SEED0001")
+        );
+
+        await using var context = _fixture.CreateContext();
+        var service = new CityQueryService(context);
+
+        // Act
+        var page = await service.GetCitiesAsync("   ", null, 1, 25);
+
+        // Assert
+        Assert.Equal(2, page.TotalCount);
+    }
+
+    [Fact]
+    public async Task GetCitiesAsync_SearchTermWithSurroundingWhitespace_TrimsBeforeMatching()
+    {
+        // Arrange
+        await SeedAsync(City("CTY-WS3", "Springfield", "IL", "USR-SEED0001"));
+
+        await using var context = _fixture.CreateContext();
+        var service = new CityQueryService(context);
+
+        // Act
+        var page = await service.GetCitiesAsync("  spring  ", null, 1, 25);
+
+        // Assert
+        var item = Assert.Single(page.Items);
+        Assert.Equal("Springfield", item.Name);
+    }
+
     [Theory]
     [InlineData(0, 25)]
     [InlineData(-1, 25)]

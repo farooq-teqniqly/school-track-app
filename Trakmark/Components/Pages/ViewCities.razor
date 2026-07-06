@@ -71,7 +71,7 @@ else if (_page is not null)
                     <td>@city.StateName (@city.StateAbbreviation)</td>
                     <td>@city.CreatedBy</td>
                     <td>
-                        <time data-utc="@city.CreatedAt.ToString("O")">
+                        <time datetime="@city.CreatedAt.ToString("O")" data-utc="@city.CreatedAt.ToString("O")">
                             @city.CreatedAt.UtcDateTime.ToString("g") UTC
                         </time>
                     </td>
