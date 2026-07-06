@@ -58,6 +58,12 @@ Use U.S. English in all prose, comments, commit messages, and docs.
 - Factory methods that generate a new identity (e.g. `Entity.Create(...)`) must be called **exactly once** per entity being constructed. Calling the same factory in separate passes (e.g., a validation pass and a build pass) produces a different identity on each call. Validate inputs first, then call the factory once and use its result throughout.
 - Any service method that saves an entity to a table protected by a unique index must catch `DbUpdateException` and inspect the inner `SqlException` for SQL error numbers **2601** and **2627** (unique-constraint violations). Translate those into a domain-level duplicate result (e.g., a `Conflict` or `DuplicateEntry` discriminated-union case) rather than letting the exception propagate to the caller.
 
+## Read-side query conventions
+
+- **Culture-safe casing on the C# side.** When building a case-insensitive EF query predicate, normalize the C#-side comparison value with `ToUpperInvariant()` — never `ToUpper()`, whose current-culture behavior triggers the Turkish-`i` bug. On the *column* side use `ToUpper()`, which EF Core translates to SQL `UPPER()` (executed by the server, culture-independent). `ToUpperInvariant()` has no EF translation, so never call it on a mapped column inside a `Where`.
+- **Keep predicates sargable.** Do not wrap a column already stored in a canonical case in `ToUpper()`/`ToLower()` inside a predicate — the per-row function call is non-sargable and defeats index use. Match the stored canonical form directly (e.g. `c.State == upperInput`, where `State` is always persisted uppercase) rather than `c.State.ToUpper() == upperInput`.
+- **Treat blank optional filters as no filter.** For optional filter inputs (search terms, dropdown values), gate the predicate with `string.IsNullOrWhiteSpace(...)` and `Trim()` the value before use — never let a whitespace-only or untrimmed string become a real predicate.
+
 ## Configuration
 
 - Unit tests that exercise EF Core interceptors require `Microsoft.EntityFrameworkCore.InMemory` in the test project's `.csproj`. Add it with `dotnet add package Microsoft.EntityFrameworkCore.InMemory` before writing interceptor unit tests; do not reference the in-memory provider without adding the package explicitly.
@@ -88,6 +94,8 @@ Use U.S. English in all prose, comments, commit messages, and docs.
 - Every `InteractiveServer` or `InteractiveAuto` component with a side-effectful `OnInitializedAsync` must add `if (!RendererInfo.IsInteractive) return;` as the first line — prevents redundant DB calls and service invocations during SSR prerender.
 - Any `OnInitializedAsync` that calls a service which may throw must wrap the call in a broad `catch (Exception ex)`, emit a `[LoggerMessage]`-generated entry at `Warning` level or above, and set a user-visible error field — never let it propagate uncaught. Prefer `catch (Exception ex)` over a narrow exception-type filter; unexpected types must not bypass the error display.
 - When adding an async-guarded submit button (e.g. a `_isSaving` flag), call `StateHasChanged()` immediately after setting `_isSaving = true` — Blazor Server does not re-render at intermediate `await` points, so without the explicit call the button never visually disables while the request is in flight.
+- When a component reloads data into a backing field (e.g. `_page`) and the load can fail, clear that field (set it to `null` or empty) inside the `catch` before setting the error field — otherwise stale rows stay visible beneath the error banner.
+- For non-critical JS interop (e.g. cosmetic local-time formatting in `OnAfterRenderAsync`), catch **both** `JSDisconnectedException` **and** `JSException`: a missing or renamed script raises `JSException`, which if uncaught tears down the circuit. Skip the interop call entirely when there is nothing to format (e.g. the page has no rows) rather than invoking it unconditionally.
 
 ## Git commits
 
