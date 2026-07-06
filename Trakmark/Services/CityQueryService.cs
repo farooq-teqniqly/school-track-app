@@ -47,10 +47,11 @@ public sealed class CityQueryService : ICityQueryService
 
         if (!string.IsNullOrWhiteSpace(stateAbbreviation))
         {
+            // State is always stored as a canonical uppercase abbreviation, so an exact
+            // match on the already-uppercased input is correct and stays sargable (no
+            // per-row UPPER() on the column).
             var upperState = stateAbbreviation.Trim().ToUpperInvariant();
-#pragma warning disable CA1862
-            query = query.Where(c => c.State.ToUpper() == upperState);
-#pragma warning restore CA1862
+            query = query.Where(c => c.State == upperState);
         }
 
         var totalCount = await query.CountAsync();

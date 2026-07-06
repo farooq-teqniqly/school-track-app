@@ -96,6 +96,24 @@ public sealed class ViewCitiesTests : BunitContext
     }
 
     [Fact]
+    public void ViewCities_JsInteropThrowsJsException_RendersWithoutThrowing()
+    {
+        // Arrange
+        SetupPage(
+            PageOf(1, new CityListItem("Chicago", "IL", "Illinois", DateTimeOffset.UtcNow, "a@test.com"))
+        );
+        JSInterop.SetupVoid("trakmark.formatLocalTimes")
+            .SetException(new JSException("formatLocalTimes is not defined"));
+
+        // Act
+        var cut = Render<ViewCities>();
+
+        // Assert
+        Assert.Single(cut.FindAll(".city-row"));
+        Assert.Empty(cut.FindAll("#error-alert"));
+    }
+
+    [Fact]
     public void ViewCities_EmptyResult_ShowsEmptyMessageAndNoRows()
     {
         // Arrange

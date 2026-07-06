@@ -134,7 +134,7 @@ else if (_page is not null)
         {
             await JS.InvokeVoidAsync("trakmark.formatLocalTimes");
         }
-        catch (JSDisconnectedException ex)
+        catch (Exception ex) when (ex is JSDisconnectedException or JSException)
         {
             Logger.LogLocalTimeFormatSkipped(ex);
         }
@@ -155,6 +155,7 @@ else if (_page is not null)
         catch (Exception ex)
         {
             Logger.LogCityQueryFailed(ex);
+            _page = null;
             _errorMessage = "Failed to load cities. Please try again or contact support.";
         }
     }
