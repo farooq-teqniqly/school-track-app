@@ -11,6 +11,15 @@ Rules in this file are project-specific and override the baseline where they con
 - The web app project is `Trakmark`; other projects use the `Trakmark.<Area>` prefix.
 - Register every new project in `Trakmark.slnx`.
 
+## Baseline overrides
+
+- **Line endings:** this repo's `.gitattributes` enforces LF for everything including
+  `.sln`/`.slnx` (CRLF only for `.bat`/`.ps1`/`.cmd`). Follow `.gitattributes`, not the
+  baseline's CRLF-for-solution-files rule.
+- **Package versions:** this repo does not use Central Package Management yet; package
+  versions live in each `.csproj`. Keep them there until CPM is introduced in a dedicated
+  change.
+
 ## Code conventions (beyond baseline)
 
 - XML-doc exemptions specific to this repo: `[LoggerMessage]` methods in `*.Logging.cs`

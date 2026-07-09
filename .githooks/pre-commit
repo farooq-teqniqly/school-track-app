@@ -15,7 +15,8 @@ staged=$(git diff --cached --name-only --diff-filter=ACMR \
 # Ensure the local tool is available.
 dotnet tool restore >/dev/null
 
-echo "$staged" | while IFS= read -r file; do
+# printf, not echo: echo may mangle backslash escapes or treat a leading '-' as an option.
+printf '%s\n' "$staged" | while IFS= read -r file; do
 	[ -f "$file" ] || continue
 	dotnet csharpier format "$file"
 	git add -- "$file"
